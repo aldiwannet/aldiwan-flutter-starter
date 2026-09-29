@@ -31,7 +31,7 @@ dependencies:
   aldiwan:
     git:
       url: https://github.com/aldiwannet/aldiwan-flutter.git
-      ref: v0.1.0
+      ref: v0.1.1
   flutter:
     sdk: flutter
 

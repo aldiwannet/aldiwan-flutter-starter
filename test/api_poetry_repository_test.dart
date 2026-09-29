@@ -27,7 +27,7 @@ void main() {
     });
     final repository = ApiPoetryRepository(
       sdk.AldiwanClient(
-        baseUri: Uri.parse('https://api.aldiwan.net/api/v1'),
+        baseUri: Uri.parse('https://api.aldiwan.net/v1'),
         apiKey: 'test-key',
         httpClient: client,
         maxRetries: 0,
@@ -38,7 +38,7 @@ void main() {
       const ExploreQuery(style: PoemStyle.vertical),
     );
 
-    expect(request.url.path, '/api/v1/poems');
+    expect(request.url.path, '/v1/poems');
     expect(request.headers['Authorization'], 'Bearer test-key');
     expect(request.url.queryParameters['poem_style'], 'vertical');
     expect(poems.single.title, 'عنوان');
@@ -47,7 +47,7 @@ void main() {
   test('official client rejects a missing key', () {
     expect(
       () => sdk.AldiwanClient(
-        baseUri: Uri.parse('https://api.aldiwan.net/api/v1'),
+        baseUri: Uri.parse('https://api.aldiwan.net/v1'),
         apiKey: '',
       ),
       throwsArgumentError,

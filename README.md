@@ -27,7 +27,7 @@ flutter run
 ```bash
 flutter run \
   --dart-define=ALDIWAN_API_KEY=YOUR_KEY \
-  --dart-define=ALDIWAN_API_BASE_URL=https://api.aldiwan.net/api/v1
+  --dart-define=ALDIWAN_API_BASE_URL=https://api.aldiwan.net/v1
 ```
 
 للمعاينة دون شبكة استخدم صراحةً `--dart-define=ALDIWAN_DEMO_MODE=true`. لا يحدث fallback تلقائي يخفي أخطاء المصادقة أو الشبكة.
@@ -43,7 +43,7 @@ dependencies:
   aldiwan:
     git:
       url: https://github.com/aldiwannet/aldiwan-flutter.git
-      ref: v0.1.0
+      ref: v0.1.1
 ```
 
 يحوّل `ApiPoetryRepository` نماذج الـSDK إلى نماذج الواجهة خلف `PoetryRepository`، لذلك يمكن لاحقًا الانتقال إلى إصدار `pub.dev` دون تعديل الشاشات.
