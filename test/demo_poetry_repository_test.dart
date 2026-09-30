@@ -7,14 +7,17 @@ void main() {
     final poems = await DemoPoetryRepository().explore(
       const ExploreQuery(style: PoemStyle.vertical),
     );
-    expect(poems, isNotEmpty);
-    expect(poems.every((poem) => poem.style == PoemStyle.vertical), isTrue);
+    expect(poems.items, isNotEmpty);
+    expect(
+      poems.items.every((poem) => poem.style == PoemStyle.vertical),
+      isTrue,
+    );
   });
 
   test('searches by poet name', () async {
     final poems = await DemoPoetryRepository().explore(
       const ExploreQuery(search: 'المتنبي'),
     );
-    expect(poems, hasLength(1));
+    expect(poems.items, hasLength(1));
   });
 }

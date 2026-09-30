@@ -1,8 +1,8 @@
 import 'models.dart';
 
 abstract class PoetryRepository {
-  Future<List<PoemSummary>> explore(ExploreQuery query);
+  Future<ResultPage<PoemSummary>> explore(ExploreQuery query, {int page = 1});
   Future<Poem> poem(String id);
   Future<Poet> poet(String id);
-  Future<List<PoemSummary>> poemsByPoet(String poetId);
+  Future<ResultPage<PoemSummary>> poemsByPoet(String poetId, {int page = 1});
 }

@@ -49,3 +49,16 @@ class ExploreQuery {
   final String search;
   final PoemStyle? style;
 }
+
+class ResultPage<T> {
+  const ResultPage({
+    required this.items,
+    required this.currentPage,
+    required this.lastPage,
+  });
+
+  final List<T> items;
+  final int currentPage;
+  final int lastPage;
+  bool get hasNextPage => currentPage < lastPage;
+}

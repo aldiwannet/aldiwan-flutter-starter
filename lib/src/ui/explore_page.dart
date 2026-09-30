@@ -24,19 +24,54 @@ class _ExplorePageState extends State<ExplorePage> {
   PoemStyle? _style;
   String _search = '';
   bool _favoritesOnly = false;
-  late Future<List<PoemSummary>> _poems;
+  List<PoemSummary> _poems = const [];
+  int _page = 0;
+  int _lastPage = 1;
+  bool _loading = false;
+  Object? _error;
+  int _generation = 0;
   @override
   void initState() {
     super.initState();
-    _reload();
+    _load(reset: true);
   }
 
-  void _reload() => _poems = widget.repository.explore(
-    ExploreQuery(search: _search, style: _style),
-  );
+  Future<void> _load({required bool reset}) async {
+    if (_loading && !reset) return;
+    final generation = reset ? ++_generation : _generation;
+    setState(() {
+      _loading = true;
+      _error = null;
+      if (reset) {
+        _poems = const [];
+        _page = 0;
+        _lastPage = 1;
+      }
+    });
+    try {
+      final result = await widget.repository.explore(
+        ExploreQuery(search: _search, style: _style),
+        page: reset ? 1 : _page + 1,
+      );
+      if (!mounted || generation != _generation) return;
+      setState(() {
+        _poems = reset ? result.items : [..._poems, ...result.items];
+        _page = result.currentPage;
+        _lastPage = result.lastPage;
+      });
+    } catch (error) {
+      if (mounted && generation == _generation) {
+        setState(() => _error = error);
+      }
+    } finally {
+      if (mounted && generation == _generation) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
   void _setStyle(PoemStyle? value) => setState(() {
     _style = value;
-    _reload();
   });
 
   @override
@@ -59,7 +94,7 @@ class _ExplorePageState extends State<ExplorePage> {
       ],
     ),
     body: RefreshIndicator(
-      onRefresh: () async => setState(_reload),
+      onRefresh: () => _load(reset: true),
       child: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
@@ -70,10 +105,10 @@ class _ExplorePageState extends State<ExplorePage> {
                   SearchBar(
                     hintText: 'ابحث عن قصيدة أو شاعر',
                     leading: const Icon(Icons.search),
-                    onSubmitted: (value) => setState(() {
-                      _search = value;
-                      _reload();
-                    }),
+                    onSubmitted: (value) {
+                      setState(() => _search = value);
+                      _load(reset: true);
+                    },
                   ),
                   const SizedBox(height: 12),
                   SingleChildScrollView(
@@ -83,7 +118,10 @@ class _ExplorePageState extends State<ExplorePage> {
                         ChoiceChip(
                           label: const Text('الكل'),
                           selected: _style == null,
-                          onSelected: (_) => _setStyle(null),
+                          onSelected: (_) {
+                            _setStyle(null);
+                            _load(reset: true);
+                          },
                         ),
                         const SizedBox(width: 8),
                         ...PoemStyle.values.map(
@@ -92,7 +130,10 @@ class _ExplorePageState extends State<ExplorePage> {
                             child: ChoiceChip(
                               label: Text(styleName(style)),
                               selected: _style == style,
-                              onSelected: (_) => _setStyle(style),
+                              onSelected: (_) {
+                                _setStyle(style);
+                                _load(reset: true);
+                              },
                             ),
                           ),
                         ),
@@ -103,32 +144,30 @@ class _ExplorePageState extends State<ExplorePage> {
               ),
             ),
           ),
-          FutureBuilder<List<PoemSummary>>(
-            future: _poems,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
+          Builder(
+            builder: (context) {
+              if (_loading && _poems.isEmpty) {
                 return const SliverFillRemaining(
                   child: Center(child: CircularProgressIndicator()),
                 );
               }
-              if (snapshot.hasError) {
+              if (_error != null && _poems.isEmpty) {
                 return SliverFillRemaining(
                   child: MessageState(
                     icon: Icons.cloud_off,
                     title: 'تعذّر تحميل القصائد',
                     action: TextButton(
-                      onPressed: () => setState(_reload),
+                      onPressed: () => _load(reset: true),
                       child: const Text('إعادة المحاولة'),
                     ),
                   ),
                 );
               }
-              final allPoems = snapshot.data ?? const <PoemSummary>[];
               final poems = _favoritesOnly
-                  ? allPoems
+                  ? _poems
                         .where((poem) => widget.favorites.contains(poem.id))
                         .toList()
-                  : allPoems;
+                  : _poems;
               if (poems.isEmpty) {
                 return const SliverFillRemaining(
                   child: MessageState(
@@ -138,8 +177,29 @@ class _ExplorePageState extends State<ExplorePage> {
                 );
               }
               return SliverList.builder(
-                itemCount: poems.length,
+                itemCount: poems.length + (_page < _lastPage ? 1 : 0),
                 itemBuilder: (context, index) {
+                  if (index == poems.length) {
+                    return Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Center(
+                        child: FilledButton.icon(
+                          onPressed: _loading
+                              ? null
+                              : () => _load(reset: false),
+                          icon: _loading
+                              ? const SizedBox.square(
+                                  dimension: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.expand_more),
+                          label: const Text('تحميل المزيد'),
+                        ),
+                      ),
+                    );
+                  }
                   final poem = poems[index];
                   return PoemCard(
                     poem: poem,

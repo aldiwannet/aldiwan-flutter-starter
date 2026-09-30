@@ -13,24 +13,43 @@ class ApiPoetryRepository implements PoetryRepository {
   final sdk.AldiwanClient _client;
 
   @override
-  Future<List<PoemSummary>> explore(ExploreQuery query) async {
+  Future<ResultPage<PoemSummary>> explore(
+    ExploreQuery query, {
+    int page = 1,
+  }) async {
     final search = query.search.trim();
-    final poems = search.isEmpty
-        ? (await _client.poems.list(
-            filters: sdk.PoemFilters(style: _toSdkStyle(query.style)),
-          )).items
-        : (await _client.search.search(
-            search,
-            type: sdk.SearchType.poems,
-          )).poems;
-    return poems
-        .where(
-          (poem) =>
-              query.style == null ||
-              _fromSdkStyle(poem.poemStyle) == query.style,
-        )
-        .map(_fromSdkPoemSummary)
-        .toList(growable: false);
+    if (search.isEmpty) {
+      final result = await _client.poems.list(
+        page: page,
+        perPage: 20,
+        filters: sdk.PoemFilters(style: _toSdkStyle(query.style)),
+      );
+      return ResultPage(
+        items: result.items.map(_fromSdkPoemSummary).toList(growable: false),
+        currentPage: result.currentPage,
+        lastPage: result.lastPage,
+      );
+    }
+    if (page > 1) {
+      return const ResultPage(items: [], currentPage: 1, lastPage: 1);
+    }
+    final poems = (await _client.search.search(
+      search,
+      type: sdk.SearchType.poems,
+      perPage: 20,
+    )).poems;
+    return ResultPage(
+      items: poems
+          .where(
+            (poem) =>
+                query.style == null ||
+                _fromSdkStyle(poem.poemStyle) == query.style,
+          )
+          .map(_fromSdkPoemSummary)
+          .toList(growable: false),
+      currentPage: 1,
+      lastPage: 1,
+    );
   }
 
   @override
@@ -42,10 +61,21 @@ class ApiPoetryRepository implements PoetryRepository {
       _fromSdkPoet(await _client.poets.get(_numericId(id)));
 
   @override
-  Future<List<PoemSummary>> poemsByPoet(String poetId) async =>
-      (await _client.poets.poems(
-        _numericId(poetId),
-      )).items.map(_fromSdkPoemSummary).toList(growable: false);
+  Future<ResultPage<PoemSummary>> poemsByPoet(
+    String poetId, {
+    int page = 1,
+  }) async {
+    final result = await _client.poets.poems(
+      _numericId(poetId),
+      page: page,
+      perPage: 20,
+    );
+    return ResultPage(
+      items: result.items.map(_fromSdkPoemSummary).toList(growable: false),
+      currentPage: result.currentPage,
+      lastPage: result.lastPage,
+    );
+  }
 
   int _numericId(String id) {
     final value = int.tryParse(id);

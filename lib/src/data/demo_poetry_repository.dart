@@ -53,10 +53,13 @@ class DemoPoetryRepository implements PoetryRepository {
   ];
 
   @override
-  Future<List<PoemSummary>> explore(ExploreQuery query) async {
+  Future<ResultPage<PoemSummary>> explore(
+    ExploreQuery query, {
+    int page = 1,
+  }) async {
     await Future<void>.delayed(const Duration(milliseconds: 250));
     final needle = query.search.trim();
-    return _sample
+    final items = _sample
         .where(
           (poem) =>
               (query.style == null || poem.style == query.style) &&
@@ -65,6 +68,11 @@ class DemoPoetryRepository implements PoetryRepository {
                   poem.poet.name.contains(needle)),
         )
         .toList(growable: false);
+    return ResultPage(
+      items: page == 1 ? items : const [],
+      currentPage: 1,
+      lastPage: 1,
+    );
   }
 
   @override
@@ -74,6 +82,16 @@ class DemoPoetryRepository implements PoetryRepository {
   Future<Poem> poem(String id) async =>
       _sample.firstWhere((poem) => poem.id == id);
   @override
-  Future<List<PoemSummary>> poemsByPoet(String poetId) async =>
-      _sample.where((poem) => poem.poet.id == poetId).toList(growable: false);
+  Future<ResultPage<PoemSummary>> poemsByPoet(
+    String poetId, {
+    int page = 1,
+  }) async => ResultPage(
+    items: page == 1
+        ? _sample
+              .where((poem) => poem.poet.id == poetId)
+              .toList(growable: false)
+        : const [],
+    currentPage: 1,
+    lastPage: 1,
+  );
 }

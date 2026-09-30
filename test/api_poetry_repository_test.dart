@@ -41,8 +41,9 @@ void main() {
     expect(request.url.path, '/v1/poems');
     expect(request.headers['Authorization'], 'Bearer test-key');
     expect(request.url.queryParameters['poem_style'], 'vertical');
-    expect(poems.single.title, 'عنوان');
-    expect(poems.single.excerpt, 'صدر عجز');
+    expect(poems.items.single.title, 'عنوان');
+    expect(poems.items.single.excerpt, 'صدر عجز');
+    expect(poems.currentPage, 1);
   });
 
   test('loads full text only when a poem is opened', () async {
