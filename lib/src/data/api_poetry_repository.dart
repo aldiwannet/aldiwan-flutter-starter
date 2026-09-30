@@ -13,7 +13,7 @@ class ApiPoetryRepository implements PoetryRepository {
   final sdk.AldiwanClient _client;
 
   @override
-  Future<List<Poem>> explore(ExploreQuery query) async {
+  Future<List<PoemSummary>> explore(ExploreQuery query) async {
     final search = query.search.trim();
     final poems = search.isEmpty
         ? (await _client.poems.list(
@@ -29,19 +29,23 @@ class ApiPoetryRepository implements PoetryRepository {
               query.style == null ||
               _fromSdkStyle(poem.poemStyle) == query.style,
         )
-        .map(_fromSdkPoem)
+        .map(_fromSdkPoemSummary)
         .toList(growable: false);
   }
+
+  @override
+  Future<Poem> poem(String id) async =>
+      _fromSdkPoem(await _client.poems.get(_numericId(id)));
 
   @override
   Future<Poet> poet(String id) async =>
       _fromSdkPoet(await _client.poets.get(_numericId(id)));
 
   @override
-  Future<List<Poem>> poemsByPoet(String poetId) async =>
+  Future<List<PoemSummary>> poemsByPoet(String poetId) async =>
       (await _client.poets.poems(
         _numericId(poetId),
-      )).items.map(_fromSdkPoem).toList(growable: false);
+      )).items.map(_fromSdkPoemSummary).toList(growable: false);
 
   int _numericId(String id) {
     final value = int.tryParse(id);
@@ -50,6 +54,19 @@ class ApiPoetryRepository implements PoetryRepository {
     }
     return value;
   }
+
+  PoemSummary _fromSdkPoemSummary(sdk.PoemSummary poem) => PoemSummary(
+    id: poem.id.toString(),
+    title: poem.title,
+    poet: Poet(
+      id: poem.poet.id.toString(),
+      name: poem.poet.name,
+      era: poem.era.name ?? '',
+    ),
+    style: _fromSdkStyle(poem.poemStyle),
+    excerpt: poem.excerpt,
+    meter: poem.meter,
+  );
 
   Poem _fromSdkPoem(sdk.Poem poem) => Poem(
     id: poem.id.toString(),
@@ -60,6 +77,7 @@ class ApiPoetryRepository implements PoetryRepository {
       era: poem.era.name ?? '',
     ),
     style: _fromSdkStyle(poem.poemStyle),
+    excerpt: poem.excerpt,
     lines: poem.text
         .split('\n')
         .map((line) => line.trim())

@@ -24,7 +24,7 @@ class _ExplorePageState extends State<ExplorePage> {
   PoemStyle? _style;
   String _search = '';
   bool _favoritesOnly = false;
-  late Future<List<Poem>> _poems;
+  late Future<List<PoemSummary>> _poems;
   @override
   void initState() {
     super.initState();
@@ -103,7 +103,7 @@ class _ExplorePageState extends State<ExplorePage> {
               ),
             ),
           ),
-          FutureBuilder<List<Poem>>(
+          FutureBuilder<List<PoemSummary>>(
             future: _poems,
             builder: (context, snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
@@ -123,7 +123,7 @@ class _ExplorePageState extends State<ExplorePage> {
                   ),
                 );
               }
-              final allPoems = snapshot.data ?? const <Poem>[];
+              final allPoems = snapshot.data ?? const <PoemSummary>[];
               final poems = _favoritesOnly
                   ? allPoems
                         .where((poem) => widget.favorites.contains(poem.id))
@@ -148,7 +148,8 @@ class _ExplorePageState extends State<ExplorePage> {
                       context,
                       MaterialPageRoute(
                         builder: (_) => PoemReaderPage(
-                          poem: poem,
+                          poemId: poem.id,
+                          repository: widget.repository,
                           favorites: widget.favorites,
                         ),
                       ),
@@ -182,7 +183,7 @@ class PoemCard extends StatelessWidget {
     required this.onOpen,
     required this.onPoet,
   });
-  final Poem poem;
+  final PoemSummary poem;
   final FavoritesStore favorites;
   final VoidCallback onOpen;
   final VoidCallback onPoet;

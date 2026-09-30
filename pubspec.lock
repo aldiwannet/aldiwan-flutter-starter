@@ -5,11 +5,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v0.1.1"
-      resolved-ref: "488eda13571611d74f32a9c82187eb80eeed7528"
+      ref: "v0.2.0"
+      resolved-ref: f6e3b310ce050f5ac7c19e15d65ebd0f54bc3738
       url: "https://github.com/aldiwannet/aldiwan-flutter.git"
     source: git
-    version: "0.1.1"
+    version: "0.2.0"
   async:
     dependency: transitive
     description:

@@ -21,6 +21,7 @@ class DemoPoetryRepository implements PoetryRepository {
       poet: _mutanabbi,
       style: PoemStyle.vertical,
       meter: 'الطويل',
+      excerpt: 'على قدر أهل العزم تأتي العزائم',
       lines: [
         'على قدر أهل العزم تأتي العزائم|وتأتي على قدر الكرام المكارم',
         'وتعظم في عين الصغير صغارها|وتصغر في عين العظيم العظائم',
@@ -31,6 +32,7 @@ class DemoPoetryRepository implements PoetryRepository {
       title: 'إرادة الحياة',
       poet: _shabbi,
       style: PoemStyle.freeVerse,
+      excerpt: 'إذا الشعب يومًا أراد الحياة',
       lines: [
         'إذا الشعب يومًا أراد الحياة',
         'فلا بد أن يستجيب القدر',
@@ -42,6 +44,7 @@ class DemoPoetryRepository implements PoetryRepository {
       title: 'نافذة',
       poet: _shabbi,
       style: PoemStyle.prose,
+      excerpt: 'نص تجريبي يوضّح أسلوب عرض قصيدة النثر.',
       lines: [
         'نص تجريبي يوضّح أسلوب عرض قصيدة النثر.',
         'استبدله ببيانات المنصة عند ربط الـ SDK الرسمي.',
@@ -50,7 +53,7 @@ class DemoPoetryRepository implements PoetryRepository {
   ];
 
   @override
-  Future<List<Poem>> explore(ExploreQuery query) async {
+  Future<List<PoemSummary>> explore(ExploreQuery query) async {
     await Future<void>.delayed(const Duration(milliseconds: 250));
     final needle = query.search.trim();
     return _sample
@@ -68,6 +71,9 @@ class DemoPoetryRepository implements PoetryRepository {
   Future<Poet> poet(String id) async =>
       _sample.firstWhere((poem) => poem.poet.id == id).poet;
   @override
-  Future<List<Poem>> poemsByPoet(String poetId) async =>
+  Future<Poem> poem(String id) async =>
+      _sample.firstWhere((poem) => poem.id == id);
+  @override
+  Future<List<PoemSummary>> poemsByPoet(String poetId) async =>
       _sample.where((poem) => poem.poet.id == poetId).toList(growable: false);
 }

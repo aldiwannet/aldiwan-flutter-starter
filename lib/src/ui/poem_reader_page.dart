@@ -2,34 +2,84 @@ import 'package:flutter/material.dart';
 
 import '../data/favorites_store.dart';
 import '../domain/models.dart';
+import '../domain/poetry_repository.dart';
 
-class PoemReaderPage extends StatelessWidget {
+class PoemReaderPage extends StatefulWidget {
   const PoemReaderPage({
     super.key,
-    required this.poem,
+    required this.poemId,
+    required this.repository,
     required this.favorites,
   });
-  final Poem poem;
+
+  final String poemId;
+  final PoetryRepository repository;
   final FavoritesStore favorites;
+
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Text(poem.title),
-      actions: [
-        AnimatedBuilder(
-          animation: favorites,
-          builder: (_, child) => IconButton(
-            onPressed: () => favorites.toggle(poem.id),
-            icon: Icon(
-              favorites.contains(poem.id)
-                  ? Icons.favorite
-                  : Icons.favorite_border,
+  State<PoemReaderPage> createState() => _PoemReaderPageState();
+}
+
+class _PoemReaderPageState extends State<PoemReaderPage> {
+  late Future<Poem> _poem;
+
+  @override
+  void initState() {
+    super.initState();
+    _poem = widget.repository.poem(widget.poemId);
+  }
+
+  void _retry() => setState(() {
+    _poem = widget.repository.poem(widget.poemId);
+  });
+
+  @override
+  Widget build(BuildContext context) => FutureBuilder<Poem>(
+    future: _poem,
+    builder: (context, snapshot) {
+      final poem = snapshot.data;
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(poem?.title ?? 'القصيدة'),
+          actions: [
+            AnimatedBuilder(
+              animation: widget.favorites,
+              builder: (_, child) => IconButton(
+                onPressed: () => widget.favorites.toggle(widget.poemId),
+                icon: Icon(
+                  widget.favorites.contains(widget.poemId)
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                ),
+              ),
             ),
-          ),
+          ],
         ),
-      ],
-    ),
-    body: SelectionArea(
+        body: _body(context, snapshot),
+      );
+    },
+  );
+
+  Widget _body(BuildContext context, AsyncSnapshot<Poem> snapshot) {
+    if (snapshot.connectionState != ConnectionState.done) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (snapshot.hasError || !snapshot.hasData) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.menu_book_outlined, size: 48),
+            const SizedBox(height: 12),
+            const Text('تعذّر تحميل النص الكامل للقصيدة'),
+            const SizedBox(height: 8),
+            TextButton(onPressed: _retry, child: const Text('إعادة المحاولة')),
+          ],
+        ),
+      );
+    }
+    final poem = snapshot.requireData;
+    return SelectionArea(
       child: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
         children: [
@@ -56,8 +106,8 @@ class PoemReaderPage extends StatelessWidget {
           ),
         ],
       ),
-    ),
-  );
+    );
+  }
 }
 
 class Verse extends StatelessWidget {

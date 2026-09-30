@@ -31,7 +31,7 @@ class PoetPage extends StatelessWidget {
           return const Center(child: Text('تعذّر تحميل بيانات الشاعر'));
         }
         final poet = snapshot.data![0] as Poet;
-        final poems = snapshot.data![1] as List<Poem>;
+        final poems = snapshot.data![1] as List<PoemSummary>;
         return ListView(
           padding: const EdgeInsets.all(20),
           children: [
@@ -60,8 +60,11 @@ class PoetPage extends StatelessWidget {
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) =>
-                        PoemReaderPage(poem: poem, favorites: favorites),
+                    builder: (_) => PoemReaderPage(
+                      poemId: poem.id,
+                      repository: repository,
+                      favorites: favorites,
+                    ),
                   ),
                 ),
               ),

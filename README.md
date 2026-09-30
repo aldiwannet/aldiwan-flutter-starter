@@ -12,6 +12,7 @@ An Arabic, RTL-first reference app for building poetry experiences with Aldiwan.
 - مفضلة محلية عبر `shared_preferences`.
 - RTL وMaterial 3 ومظهر فاتح/داكن.
 - حالات loading/error/empty وإعادة المحاولة.
+- القوائم والبحث تعرض مقتطفات فقط؛ النص الكامل يُطلب عند فتح القصيدة احترامًا لكوتة النص الكامل.
 - طبقة `PoetryRepository` مستقلة عن مصدر البيانات.
 - CI للتنسيق والتحليل والاختبارات.
 
@@ -43,7 +44,7 @@ dependencies:
   aldiwan:
     git:
       url: https://github.com/aldiwannet/aldiwan-flutter.git
-      ref: v0.1.1
+      ref: v0.2.0
 ```
 
 يحوّل `ApiPoetryRepository` نماذج الـSDK إلى نماذج الواجهة خلف `PoetryRepository`، لذلك يمكن لاحقًا الانتقال إلى إصدار `pub.dev` دون تعديل الشاشات.

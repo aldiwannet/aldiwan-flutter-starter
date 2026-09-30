@@ -18,7 +18,7 @@ void main() {
           '"poet":{"id":2,"name":"شاعر","slug":"poet"},'
           '"era":{"id":3,"name":"العصر"},"meter":"الطويل",'
           '"poem_style":"vertical","display_layout":"hemistichs",'
-          '"text":"صدر|عجز","canonical_url":"https://www.aldiwan.net/poem",'
+          '"excerpt":"صدر عجز","canonical_url":"https://www.aldiwan.net/poem",'
           '"attribution":{"required":true,"text":"الديوان","url":"https://www.aldiwan.net"}}]}',
         ),
         200,
@@ -42,6 +42,41 @@ void main() {
     expect(request.headers['Authorization'], 'Bearer test-key');
     expect(request.url.queryParameters['poem_style'], 'vertical');
     expect(poems.single.title, 'عنوان');
+    expect(poems.single.excerpt, 'صدر عجز');
+  });
+
+  test('loads full text only when a poem is opened', () async {
+    late http.Request request;
+    final client = MockClient((incoming) async {
+      request = incoming;
+      return http.Response.bytes(
+        utf8.encode(
+          '{"data":{"id":1,"title":"عنوان","slug":"poem",'
+          '"poet":{"id":2,"name":"شاعر","slug":"poet"},'
+          '"era":{"id":3,"name":"العصر"},"meter":"الطويل",'
+          '"poem_style":"vertical","display_layout":"hemistichs",'
+          '"excerpt":"صدر عجز","text":"صدر|عجز",'
+          '"canonical_url":"https://www.aldiwan.net/poem",'
+          '"attribution":{"required":true,"text":"الديوان",'
+          '"url":"https://www.aldiwan.net"}}}',
+        ),
+        200,
+        headers: {'content-type': 'application/json; charset=utf-8'},
+      );
+    });
+    final repository = ApiPoetryRepository(
+      sdk.AldiwanClient(
+        baseUri: Uri.parse('https://api.aldiwan.net/v1'),
+        apiKey: 'test-key',
+        httpClient: client,
+        maxRetries: 0,
+      ),
+    );
+
+    final poem = await repository.poem('1');
+
+    expect(request.url.path, '/v1/poems/1');
+    expect(poem.lines, ['صدر|عجز']);
   });
 
   test('official client rejects a missing key', () {

@@ -13,21 +13,35 @@ class Poet {
   final String bio;
 }
 
-class Poem {
-  const Poem({
+class PoemSummary {
+  const PoemSummary({
     required this.id,
     required this.title,
     required this.poet,
     required this.style,
-    required this.lines,
+    required this.excerpt,
     this.meter,
   });
   final String id;
   final String title;
   final Poet poet;
   final PoemStyle style;
-  final List<String> lines;
+  final String excerpt;
   final String? meter;
+}
+
+class Poem extends PoemSummary {
+  const Poem({
+    required super.id,
+    required super.title,
+    required super.poet,
+    required super.style,
+    required super.excerpt,
+    required this.lines,
+    super.meter,
+  });
+
+  final List<String> lines;
 }
 
 class ExploreQuery {

@@ -4,7 +4,7 @@
 
 1. Receive an initialized `AldiwanClient` (dependency injection).
 2. Map SDK DTOs into the small domain models in `lib/src/domain/models.dart`.
-3. Translate network/auth/rate-limit failures into localized app failures.
+3. Translate network/auth/rate-limit/quota failures into localized app failures.
 4. Support cancellation and pagination when the SDK exposes them.
 5. Never log access tokens, full request headers, or sensitive responses.
 
@@ -16,13 +16,21 @@ class ApiPoetryRepository implements PoetryRepository {
   final AldiwanClient client;
 
   @override
-  Future<List<Poem>> explore(ExploreQuery query) async {
+  Future<List<PoemSummary>> explore(ExploreQuery query) async {
     final response = await client.poems.list(
       filters: PoemFilters(style: query.style),
     );
-    return response.items.map(mapPoem).toList(growable: false);
+    return response.items.map(mapPoemSummary).toList(growable: false);
   }
+
+  @override
+  Future<Poem> poem(String id) async =>
+      mapPoem(await client.poems.get(int.parse(id)));
 }
 ```
+
+List and search calls never carry full poem text. The reader performs the
+single-poem detail call only after the user opens a result; that call consumes
+the plan's separate full-text quota.
 
 For mobile/web, route authenticated requests through a backend-for-frontend. Do not ship a privileged API key in the client.
